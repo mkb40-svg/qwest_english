@@ -40,6 +40,38 @@ button:disabled{opacity:.55;cursor:default}
 .lv{display:flex;gap:8px}.lv button{flex:1;text-align:center}
 textarea{width:100%;font:inherit;padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
 
+.sc{display:block;width:100%;height:100%}
+.stage{position:relative;height:170px;border-radius:16px;overflow:hidden;border:2px solid var(--line);margin:10px 0 0}
+.stage .sc{position:absolute;inset:0}
+.ch{position:absolute;left:50%;bottom:-6px;width:110px;margin-left:-55px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) both,bob 3s ease-in-out .5s infinite}
+.ch.happy{animation:cheer .7s ease}.ch.sad{animation:shake .5s ease}
+.tale{position:absolute;left:10px;top:8px;max-width:calc(100% - 20px);font-size:.85rem;color:#10203A;background:#ffffffd9;padding:4px 12px;border-radius:999px;z-index:2}
+.bub{position:relative;margin-top:16px;animation:rise .35s ease both}
+.bub:before,.bub:after{content:"";position:absolute;left:50%;margin-left:-9px;border:9px solid transparent;border-top:0}
+.bub:before{top:-10px;border-bottom-color:var(--line)}.bub:after{top:-7px;border-bottom-color:var(--card)}
+.ban{position:relative;height:84px;border-radius:14px;overflow:hidden;margin:20px 0 6px;border:2px solid var(--line)}
+.ban .sc{position:absolute;inset:0}
+.ban b{position:absolute;left:12px;bottom:8px;font:800 1.3rem "Bricolage Grotesque",Figtree,sans-serif;color:#fff;text-shadow:0 2px 6px #000b}
+.cast{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 16px}
+.cast div{text-align:center;font-size:.78rem;color:var(--mut);animation:rise .5s both}
+.eye{transform-box:fill-box;transform-origin:center;animation:blink 4s infinite}
+.fly{animation:fly 14s linear infinite}.bus{animation:drive 9s linear infinite}.cloud{animation:drift 8s ease-in-out infinite alternate}
+.coin{position:fixed;left:50%;top:40%;font-weight:800;font-size:1.6rem;color:#E0A800;animation:coin 1s ease-out forwards;pointer-events:none;text-shadow:0 1px 0 #fff;z-index:5}
+.cf{position:fixed;top:-20px;width:10px;height:14px;animation:fall linear forwards;pointer-events:none;z-index:5}
+.hearts.hit{animation:shake .5s}
+.ep{transition:transform .15s}.ep:hover{transform:translateX(4px)}
+@keyframes pop{from{transform:translateY(40px) scale(.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes bob{50%{transform:translateY(-5px)}}
+@keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+@keyframes fly{from{transform:translateX(-90px)}to{transform:translateX(400px)}}
+@keyframes drive{from{transform:translateX(-100px)}to{transform:translateX(400px)}}
+@keyframes drift{to{transform:translateX(60px)}}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes cheer{40%{transform:translateY(-20px) rotate(-4deg)}70%{transform:translateY(-8px) rotate(3deg)}}
+@keyframes coin{to{transform:translateY(-80px);opacity:0}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 #err{position:fixed;left:0;right:0;bottom:0;background:#C0392B;color:#fff;padding:10px 14px;font:14px/1.4 monospace;z-index:9}
 </style></head>
 <body><div id="app"></div>
@@ -73,17 +105,35 @@ let E=[],cur=null;
 const $f=()=>document.getElementById("f"),sh=a=>[...a].sort(()=>Math.random()-.5),nv=Object.keys;
 const fb=(t,g)=>{$f().innerHTML=`<div class="fb ${g?"g":"b"}">${g?"Верно. ":"Не совсем. "}${t}</div>`};
 const hearts=()=>"♥".repeat(cur.h)+"<i>"+"♥".repeat(cur.t-cur.h)+"</i>";
-function intro(){A.innerHTML=`<h1><span class="logo"></span>English Quest</h1><h2>Английский, который нужен, чтобы пройти сюжет</h2><p>Вы в Лондоне, багаж потерян. Чтение, аудирование, говорение и письмо встроены в историю, а ошибки стоят «доверия» персонажей.</p><button class="pri" style="width:100%" onclick="menu()">Начать игру</button>`}
+const CH={"Офицер":{s:"#E8B48F",h:"#2B2B2B",c:"#1F3A68",a:"cap"},"Сотрудница":{s:"#F2C6A0",h:"#7A3E1D",c:"#D4261F",a:"headset",hs:1},"Администратор":{s:"#C98F66",h:"#1A1A1A",c:"#8A1C3A",a:"bell"},"Эмма":{s:"#F2C6A0",h:"#C0692B",c:"#2F6F5B",a:"glasses",hs:1},"Прохожий":{s:"#D9A27A",h:"#3B2A1E",c:"#E0A800",a:"scarf"},"Продавец":{s:"#E8B48F",h:"#4A4A4A",c:"#3E8E41",a:"apron"},"Вы":{s:"#F0C09A",h:"#222",c:"#1B3FA0",a:""}};
+const DISP={"Офицер":"Officer Hughes","Сотрудница":"Maya, Lost & Found","Администратор":"Mr. Patel, Park Hotel","Эмма":"Emma, наставник","Прохожий":"Oliver, прохожий","Продавец":"Tom, рынок","Объявление":"Аэропорт, объявление"};
+const TALE={"Паспортный контроль":"Терминал 5: очередь к офицеру Хьюзу","Потерянный багаж":"Багажная лента пуста. Чемодана нет…","Заселение":"Park Hotel, вечер. Пора отдохнуть","Проблема в номере":"Утро. В номере не работает душ","Метро":"Нужно добраться до Oxford Circus","Рынок":"Перекус перед первым рабочим днём","Первый рабочий день":"Офис. Вас встречает наставница Эмма"};
+const ACC={cap:`<path d="M24 36q26-28 52 0z" fill="#1F3A68"/><rect x="22" y="34" width="56" height="7" rx="3" fill="#10203A"/><circle cx="50" cy="29" r="3" fill="#FFD23F"/>`,headset:`<path d="M24 50q0-30 26-30t26 30" stroke="#333" stroke-width="4" fill="none"/><rect x="19" y="46" width="8" height="14" rx="3" fill="#333"/><path d="M26 62q8 12 20 8" stroke="#333" stroke-width="3" fill="none"/>`,bell:`<rect x="32" y="14" width="36" height="14" rx="4" fill="#8A1C3A"/><rect x="32" y="25" width="36" height="4" fill="#FFD23F"/><path d="M44 88l6 10 6-10z" fill="#FFD23F"/>`,glasses:`<g fill="none" stroke="#222" stroke-width="2.5"><circle cx="41" cy="50" r="7"/><circle cx="59" cy="50" r="7"/><path d="M48 50h4"/></g>`,scarf:`<path d="M34 80q16 12 32 0v10q-16 10-32 0z" fill="#D94F30"/>`,apron:`<path d="M34 92h32v28H34z" fill="#F5F5F5"/>`};
+function av(n,m="n"){
+ if(n==="Объявление")return `<svg viewBox="0 0 100 120" class="av"><circle cx="50" cy="66" r="34" fill="#FFD23F"/><path d="M30 58h14l22-14v44L44 74H30z" fill="#1B3FA0"/><path d="M74 54q10 12 0 24M80 46q16 20 0 40" stroke="#1B3FA0" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`;
+ const c=CH[n]||CH["Вы"],mo={n:"M42 62q8 4 16 0",h:"M40 60q10 12 20 0",s:"M42 67q8-7 16 0"}[m]||"M42 62q8 4 16 0";
+ const hair=c.hs?`<path d="M22 50q0-34 28-34t28 34v22q-6-4-6-24q-22-12-44-2q0 20-6 26z" fill="${c.h}"/>`:`<path d="M24 48q2-30 26-30t26 30q-14-14-52 0z" fill="${c.h}"/>`;
+ return `<svg viewBox="0 0 100 120" class="av"><path d="M10 120q0-34 40-34t40 34z" fill="${c.c}"/><rect x="43" y="68" width="14" height="16" fill="${c.s}"/><circle cx="50" cy="48" r="26" fill="${c.s}"/>${hair}<circle class="eye" cx="41" cy="51" r="3" fill="#222"/><circle class="eye" cx="59" cy="51" r="3" fill="#222"/><path d="${mo}" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>${ACC[c.a]||""}</svg>`}
+function scene(n){const K=["Аэропорт","Отель","Город","Офис"],k=K.indexOf(n),sky=[["#8EC9F5","#EAF6FF"],["#2B2F6B","#F0A56A"],["#9AD0F0","#F8E7C6"],["#DDE6F0","#F4F7FA"]][k<0?0:k],cl=`<g class="cloud" fill="#fff" opacity=".85"><ellipse cx="60" cy="24" rx="26" ry="8"/><ellipse cx="190" cy="14" rx="20" ry="6"/></g>`;let b="";
+ if(k<=0)b=cl+`<g class="fly"><ellipse cx="40" cy="40" rx="34" ry="8" fill="#fff" stroke="#9AA9BA"/><path d="M34 40l-12-22h10l18 22zM34 40l-12 20h10l18-20z" fill="#E4EAF1" stroke="#9AA9BA"/><path d="M8 40l-6-14h8l8 14z" fill="#D4261F"/></g><rect x="200" y="62" width="140" height="40" fill="#C7D2DE"/><g fill="#5B7BA8">${[0,1,2,3,4,5].map(i=>`<rect x="${208+i*22}" y="70" width="16" height="12"/>`).join("")}</g><rect y="100" width="360" height="30" fill="#6B7684"/><path d="M0 114h360" stroke="#fff" stroke-dasharray="14 12" stroke-width="3"/>`;
+ if(k===1)b=`<g fill="#fff" opacity=".8"><circle cx="30" cy="20" r="1.5"/><circle cx="120" cy="12" r="1.5"/><circle cx="300" cy="22" r="1.5"/><circle cx="330" cy="40" r="1.5"/></g><rect x="30" y="14" width="150" height="116" fill="#6B3A4A"/>`+[0,1,2,3,4].map(i=>[0,1,2,3].map(j=>`<rect x="${42+i*28}" y="${24+j*26}" width="16" height="16" fill="${(i*7+j*3)%4<2?"#FFD66B":"#3A2230"}"/>`).join("")).join("")+`<rect x="205" y="50" width="120" height="80" fill="#8A1C3A"/><rect x="242" y="82" width="30" height="48" fill="#FFD66B"/><text x="265" y="74" font-size="20" font-weight="800" text-anchor="middle" fill="#FFD23F" font-family="sans-serif">HOTEL</text>`;
+ if(k===2)b=cl+`<rect x="20" y="60" width="50" height="60" fill="#B7A99A"/><rect x="80" y="44" width="40" height="76" fill="#A39482"/><rect x="250" y="34" width="28" height="86" fill="#B89B6A"/><path d="M250 34l14-28 14 28z" fill="#8C7248"/><circle cx="264" cy="54" r="8" fill="#FFF7DD" stroke="#5A4A2A"/><rect y="112" width="360" height="18" fill="#5C6470"/><g class="bus"><rect x="0" y="82" width="84" height="32" rx="6" fill="#D4261F"/><g fill="#CFE8FF">${[0,1,2,3].map(i=>`<rect x="${8+i*19}" y="88" width="14" height="12" rx="2"/>`).join("")}</g><circle cx="20" cy="116" r="7" fill="#222"/><circle cx="64" cy="116" r="7" fill="#222"/></g>`;
+ if(k===3)b=`<rect x="30" y="16" width="120" height="64" fill="#BFE0FF" stroke="#8AA3BF" stroke-width="4"/><path d="M34 80V56h14V40h16v24h14V48h14v32z" fill="#7C98B8"/><rect x="200" y="14" width="3" height="40" fill="#8AA3BF"/><rect y="104" width="360" height="26" fill="#B7936B"/><rect x="190" y="84" width="110" height="10" fill="#8B5E3C"/><rect x="220" y="46" width="54" height="38" rx="3" fill="#2B3A55"/><rect x="225" y="51" width="44" height="28" fill="#7FB7FF"/><rect x="320" y="86" width="20" height="30" rx="3" fill="#B5651D"/><path d="M330 88q-22-24-6-40 6 18 6 40zM330 88q20-20 8-36-8 16-8 36z" fill="#3E8E41"/>`;
+ return `<svg viewBox="0 0 360 130" preserveAspectRatio="xMidYMid slice" class="sc"><defs><linearGradient id="g${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset="1" stop-color="${sky[1]}"/></linearGradient></defs><rect width="360" height="130" fill="url(#g${k})"/>${b}</svg>`}
+function mood(m){const c=document.querySelector(".ch");if(!c)return;c.innerHTML=av(cur.e.steps[cur.i].w,m);c.className="ch";void c.offsetWidth;c.className="ch "+(m==="h"?"happy":"sad")}
+function fx(t){const e=document.createElement("div");e.className="coin";e.textContent=t+" 🪙";document.body.appendChild(e);setTimeout(()=>e.remove(),1000)}
+function confetti(){const C=["#D4261F","#1B3FA0","#FFD23F","#3E8E41","#fff"];for(let i=0;i<28;i++){const d=document.createElement("i");d.className="cf";d.style.cssText=`left:${Math.random()*100}vw;background:${C[i%5]};animation-duration:${1.6+Math.random()*1.4}s;animation-delay:${Math.random()*.3}s`;document.body.appendChild(d);setTimeout(()=>d.remove(),3500)}}
+function intro(){A.innerHTML=`<div class="stage" style="height:200px">${scene("Аэропорт")}<div class="tale">Лондон, терминал 5. Ваш багаж не приехал…</div><div class="ch">${av("Офицер")}</div></div><h1 style="margin-top:14px"><span class="logo"></span>English Quest</h1><h2>Английский нужен, чтобы пройти сюжет</h2><p>Вы прилетели в Лондон на стажировку, но чемодан с паспортом потерялся. За три дня нужно найти вещи и успеть в офис. Каждый разговор на английском двигает историю, а ошибки стоят «доверия» героев.</p><h2>Герои</h2><div class="cast">${["Офицер","Сотрудница","Администратор","Прохожий","Продавец","Эмма"].map((n,i)=>`<div style="animation-delay:${i*.1}s">${av(n,"h")}${(DISP[n]||n).split(",")[0]}</div>`).join("")}</div><button class="pri" style="width:100%" onclick="menu()">Начать приключение</button>`}
 function menu(){cur=null;
- let h=`<h1><span class="logo"></span>English Quest</h1><p class="stat">Монеты: ${S.coins} · Дней подряд: ${S.streak} · Слов: ${nv(S.vocab).length} · v4</p><p class="stat">${nv(SK).map(k=>SK[k]+" "+(S.sk[SK[k]]||0)).join(" · ")}</p><h2>Уровень</h2><div class="lv">${["A2","B1","B2"].map(l=>`<button class="${S.lvl===l?"pri":""}" onclick="lvl('${l}')">${l}</button>`).join("")}</div><p class="tr">Уровень задаёт число «сердец» и наличие подсказок на русском.</p>`;
- let last="";E.forEach((e,i)=>{if(e.ch!==last){h+=`<h2>${e.ch}</h2>`;last=e.ch}h+=`<button class="ep ${S.done[i]?"done":""}" onclick="start(${i})">${e.t}<small>${S.done[i]?"Пройден":e.steps.length+" задания"}</small></button>`});
+ let h=`<h1><span class="logo"></span>English Quest</h1><p class="stat">Монеты: ${S.coins} · Дней подряд: ${S.streak} · Слов: ${nv(S.vocab).length} · v5</p><p class="stat">${nv(SK).map(k=>SK[k]+" "+(S.sk[SK[k]]||0)).join(" · ")}</p><h2>Уровень</h2><div class="lv">${["A2","B1","B2"].map(l=>`<button class="${S.lvl===l?"pri":""}" onclick="lvl('${l}')">${l}</button>`).join("")}</div><p class="tr">Уровень задаёт число «сердец» и наличие подсказок на русском.</p>`;
+ let last="";E.forEach((e,i)=>{if(e.ch!==last){h+=`<div class="ban">${scene(e.ch)}<b>${e.ch}</b></div>`;last=e.ch}h+=`<button class="ep ${S.done[i]?"done":""}" onclick="start(${i})">${e.t}<small>${S.done[i]?"Пройден":e.steps.length+" задания"}</small></button>`});
  h+=`<h2>Повторение</h2><button onclick="review()" style="width:100%">Повторить слова (к повторению: ${dueWords().length})</button><button onclick="diary()" style="margin-top:8px;width:100%">Дневник слов</button><h2>Прогресс</h2><div class="lv"><button onclick="exportSave()">Сохранить в файл</button><button onclick="document.getElementById('imp').click()">Загрузить</button></div><input id="imp" type="file" accept="application/json" hidden onchange="imp(this.files[0])"><button class="ghost" onclick="intro()">О проекте</button>`;
  A.innerHTML=h}
 function lvl(l){S.lvl=l;S.tr=l!=="B2";save();menu()}
 function imp(f){if(f)importSave(f,g=>{alert(g?"Прогресс загружен":"Не удалось прочитать файл");menu()})}
 function start(i){const t=HP[S.lvl];cur={e:E[i],id:i,i:0,h:t,t,m:0,lock:0};step()}
 function step(){const p=cur.e.steps[cur.i],n=cur.e.steps.length;cur.m=0;cur.lock=0;
- let h=`<div class="row"><button class="ghost" onclick="menu()">‹ Карта</button><span class="hearts" id="hp">${hearts()}</span><span class="tr">${cur.i+1} из ${n}</span></div><h3>${cur.e.ch}: ${cur.e.t}</h3><div class="card"><div class="who">${p.e} ${p.w}</div>`;
+ let h=`<div class="row"><button class="ghost" onclick="menu()">‹ Карта</button><span class="hearts" id="hp">${hearts()}</span><span class="tr">${cur.i+1} из ${n}</span></div><h3>${cur.e.ch}: ${cur.e.t}</h3><div class="stage">${scene(cur.e.ch)}<div class="tale">${TALE[cur.e.t]||""}</div><div class="ch">${av(p.w)}</div></div><div class="card bub"><div class="who">${DISP[p.w]||p.w}</div>`;
  if(p.k==="a")h+=`<button class="pri" onclick="speak()">▶ Прослушать</button><p class="tr" id="sub" hidden>${p.s}</p>${S.tr?`<button class="ghost" onclick="document.getElementById('sub').hidden=false">Показать субтитры</button>`:""}<p class="say">${p.q}</p>`;
  else if(p.k==="c")h+=`<p class="say">${p.s}</p>${S.tr?`<p class="tr">${p.r}</p>`:""}<button class="ghost" onclick="speak()">🔊 Озвучить</button>`;
  else if(p.k==="s")h+=`<p class="tr">Скажите вслух:</p><p class="say">${p.q}</p><button class="ghost" onclick="speak(1)">🔊 Образец</button>`;
@@ -96,8 +146,8 @@ function step(){const p=cur.e.steps[cur.i],n=cur.e.steps.length;cur.m=0;cur.lock
  A.innerHTML=h+`<div id="f"></div>`;if(p.k==="c"||p.k==="a")say(p.s)}
 const speak=q=>{const p=cur.e.steps[cur.i];say(q?p.q:p.s)};
 function nxt(){const last=cur.i===cur.e.steps.length-1,b=document.createElement("button");b.className="pri";b.style.cssText="width:100%;margin-top:8px";b.textContent=last?"Завершить эпизод":"Дальше";b.onclick=()=>{if(last)fin();else{cur.i++;step()}};$f().appendChild(b)}
-function ok(p,pre=""){cur.lock=1;S.coins+=cur.m?3:10;S.sk[SK[p.k]]=(S.sk[SK[p.k]]||0)+1;p.v.forEach(w=>addWord(w[0],w[1]));save();fb(pre+p.y,1);nxt()}
-function bad(p,pre=""){cur.m=1;cur.h--;document.getElementById("hp").innerHTML=hearts();
+function ok(p,pre=""){cur.lock=1;mood("h");fx("+"+(cur.m?3:10));S.coins+=cur.m?3:10;S.sk[SK[p.k]]=(S.sk[SK[p.k]]||0)+1;p.v.forEach(w=>addWord(w[0],w[1]));save();fb(pre+p.y,1);nxt()}
+function bad(p,pre=""){cur.m=1;cur.h--;mood("s");{const hp=document.getElementById("hp");hp.innerHTML=hearts();hp.classList.remove("hit");void hp.offsetWidth;hp.classList.add("hit")}
  if(cur.h<=0){cur.lock=1;$f().innerHTML=`<div class="fb b">Доверие потеряно. ${p.y} Эпизод начнётся заново.</div><button class="pri" style="width:100%" onclick="start(${cur.id})">Попробовать снова</button>`}else fb(pre+p.y,0)}
 function pick(j,b){if(cur.lock)return;const p=cur.e.steps[cur.i];if(j===p.a){b.classList.add("ok");ok(p)}else{b.classList.add("no");b.disabled=true;bad(p)}}
 function noMic(){$f().innerHTML=`<div class="fb">Распознавание речи недоступно. Откройте игру в Chrome или подтвердите вручную.</div><button class="pri" style="width:100%" onclick="ok(cur.e.steps[cur.i])">Я произнёс(ла) фразу</button>`}
@@ -105,8 +155,8 @@ function mic(){const p=cur.e.steps[cur.i];if(cur.lock)return;$f().innerHTML=`<di
  const n=s=>s.toLowerCase().replace(/’/g,"'").replace(/[^a-z' ]/g,"").split(/\s+/).filter(Boolean);
  listen(h=>{const T=n(p.q),H=n(h),pre=`Услышано: «${h}». `;T.filter(w=>H.includes(w)).length/T.length>=.7?ok(p,pre):bad(p,pre)},noMic)}
 function chk(){const p=cur.e.steps[cur.i],t=document.getElementById("tx").value.toLowerCase();if(!cur.lock){t.length>=15&&p.kw.every(k=>t.includes(k))?ok(p):bad(p)}}
-function fin(){const id=cur.id,e=cur.e;if(!S.done[id]){S.coins+=20;S.done[id]=1}save();
- A.innerHTML=`<h1>Эпизод пройден</h1><p class="tr">«${e.t}». Бонус +20 монет. Монет: ${S.coins}.</p><h2>Новые слова</h2>${e.steps.flatMap(s=>s.v).map(x=>`<div class="w"><span>${x[0]}</span><span class="tr">${x[1]}</span></div>`).join("")}<div class="opts">${E[id+1]?`<button class="pri" onclick="start(${id+1})">Следующий эпизод</button>`:""}<button onclick="menu()">К карте</button></div>`}
+function fin(){confetti();const id=cur.id,e=cur.e;if(!S.done[id]){S.coins+=20;S.done[id]=1}save();
+ A.innerHTML=`<div class="stage" style="height:140px">${scene(e.ch)}<div class="ch happy">${av((e.steps.find(x=>x.w!=="Вы")||{w:"Вы"}).w,"h")}</div></div><h1 style="margin-top:12px">Эпизод пройден</h1><p class="tr">«${e.t}». Бонус +20 монет. Монет: ${S.coins}.</p><h2>Новые слова</h2>${e.steps.flatMap(s=>s.v).map(x=>`<div class="w"><span>${x[0]}</span><span class="tr">${x[1]}</span></div>`).join("")}<div class="opts">${E[id+1]?`<button class="pri" onclick="start(${id+1})">Следующий эпизод</button>`:""}<button onclick="menu()">К карте</button></div>`}
 function diary(){const k=nv(S.vocab);A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Дневник слов</h1>${k.length?k.map(x=>`<div class="w"><span>${x}</span><span class="tr">${S.vocab[x].ru} · коробка ${S.vocab[x].box}</span><button class="ghost" aria-label="Озвучить ${x}" onclick="say('${x}')">🔊</button></div>`).join(""):`<p class="tr">Слова появятся после первых правильных ответов.</p>`}`}
 function review(){const ws=nv(S.vocab);
  if(ws.length<4){A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Повторение</h1><p class="tr">Нужно минимум 4 слова. Пройдите ещё один эпизод.</p>`;return}
