@@ -1,3 +1,119 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>English Quest: Lost in London</title><meta name="theme-color" content="#1B3FA0"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon.svg"><link rel="stylesheet" href="css/style.css"></head>
-<body><div id="app"></div><script type="module" src="js/app.js"></script></body></html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>English Quest: Lost in London</title><meta name="theme-color" content="#1B3FA0">
+<style>
+:root{--bg:#E9EEF3;--ink:#10203A;--card:#fff;--line:#C9D3DE;--red:#D4261F;--blue:#1B3FA0;--ok:#1E8E5A;--no:#C0392B;--mut:#5B6B80;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1626;--ink:#E8EEF6;--card:#17233A;--line:#2A3A55;--red:#FF5A52;--blue:#7C9BFF;--ok:#4CCB8D;--no:#FF7A6B;--mut:#98A8BF;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E1626;--ink:#E8EEF6;--card:#17233A;--line:#2A3A55;--red:#FF5A52;--blue:#7C9BFF;--ok:#4CCB8D;--no:#FF7A6B;--mut:#98A8BF;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.5 Figtree,system-ui,sans-serif}
+#app{max-width:560px;margin:0 auto;padding:16px}
+h1,h2,h3{font-family:"Bricolage Grotesque",Figtree,sans-serif;line-height:1.15;margin:0}
+h1{font-size:2rem;font-weight:800}h2{font-size:1.3rem;font-weight:800;margin:22px 0 8px}h3{font-size:1.1rem;font-weight:500}
+button{font:600 1rem Figtree,system-ui,sans-serif;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:12px;min-height:48px;padding:10px 14px;cursor:pointer;text-align:left}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+button:disabled{opacity:.55;cursor:default}
+.pri{background:var(--blue);color:#fff;border-color:var(--blue);text-align:center}
+:root[data-theme="dark"] .pri{color:#0E1626}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pri{color:#0E1626}}
+.ghost{background:none;border-color:transparent;padding:6px 8px;min-height:40px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.logo{display:inline-block;width:46px;height:46px;border:8px solid var(--red);border-radius:50%;position:relative;vertical-align:middle;margin-right:10px}
+.logo:after{content:"";position:absolute;left:-18px;right:-18px;top:8px;height:12px;background:var(--blue);border-radius:2px}
+.stat{color:var(--mut);font-size:.95rem;margin:10px 0 0}
+.ep{display:block;width:100%;margin:8px 0;border-left:8px solid var(--blue);border-radius:6px 12px 12px 6px;position:relative}
+.ep small{display:block;color:var(--mut);font-weight:400}
+.ep.done{border-left-color:var(--ok)}.ep.lock{border-left-color:var(--line)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
+.who{font-weight:600;color:var(--blue)}
+.say{font-size:1.25rem;margin:6px 0}
+.tr{color:var(--mut);font-size:.95rem}
+.opts{display:grid;gap:8px;margin:12px 0}
+.opts button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--card))}
+.opts button.no{border-color:var(--no)}
+.fb{padding:10px 12px;border-radius:10px;margin:8px 0;border-left:6px solid var(--mut);background:color-mix(in srgb,var(--mut) 12%,var(--card))}
+.fb.g{border-color:var(--ok)}.fb.b{border-color:var(--no)}
+.hearts{color:var(--red);letter-spacing:2px}.hearts i{font-style:normal;opacity:.35}
+.w{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.sw{display:flex;align-items:center;gap:8px;margin-top:14px;color:var(--mut);font-size:.95rem}
+.sw input{width:22px;height:22px}
+.lv{display:flex;gap:8px}.lv button{flex:1;text-align:center}
+textarea{width:100%;font:inherit;padding:10px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+
+#err{position:fixed;left:0;right:0;bottom:0;background:#C0392B;color:#fff;padding:10px 14px;font:14px/1.4 monospace;z-index:9}
+</style></head>
+<body><div id="app"></div>
+<script>
+window.addEventListener("error",function(e){var d=document.getElementById("err")||document.body.appendChild(Object.assign(document.createElement("div"),{id:"err"}));d.textContent="Ошибка: "+e.message});
+try{navigator.serviceWorker&&navigator.serviceWorker.getRegistrations().then(function(a){a.forEach(function(x){x.unregister()})}).catch(function(){});window.caches&&caches.keys().then(function(k){k.forEach(function(x){caches.delete(x)})})}catch(x){}
+</script>
+<script>
+const K="eq2";
+const load=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch{return{}}};
+const S=Object.assign({coins:0,done:{},vocab:{},streak:0,sk:{},lvl:"A2",tr:true},load());
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch{}};
+(()=>{const t=new Date().toDateString();if(S.last!==t){S.streak=S.last===new Date(Date.now()-864e5).toDateString()?S.streak+1:1;S.last=t;save()}})();
+function exportSave(){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:"application/json"}));a.download="english-quest-save.json";a.click()}
+function importSave(f,cb){f.text().then(t=>{try{Object.assign(S,JSON.parse(t));save();cb(true)}catch{cb(false)}})}
+
+const say=t=>{try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=.9;speechSynthesis.speak(u)}catch{}};
+function listen(ok,fail){const R=window.SpeechRecognition||window.webkitSpeechRecognition;if(!R)return fail();const r=new R();r.lang="en-GB";r.onresult=e=>ok(e.results[0][0].transcript);r.onerror=fail;try{r.start()}catch{fail()}}
+
+
+const DAYS=[0,1,2,4,8,16]; // интервалы по коробкам Лейтнера, дни
+const addWord=(en,ru)=>{if(!S.vocab[en])S.vocab[en]={ru,box:1,due:Date.now()}};
+const dueWords=()=>Object.keys(S.vocab).filter(w=>S.vocab[w].due<=Date.now());
+function grade(w,ok){const v=S.vocab[w];v.box=ok?Math.min(v.box+1,5):1;v.due=Date.now()+DAYS[v.box]*864e5;save()}
+
+
+
+
+const A=document.getElementById("app"),HP={A2:4,B1:3,B2:2},SK={c:"Чтение",a:"Аудирование",g:"Грамматика",s:"Говорение",w:"Письмо"};
+let E=[],cur=null;
+const $f=()=>document.getElementById("f"),sh=a=>[...a].sort(()=>Math.random()-.5),nv=Object.keys;
+const fb=(t,g)=>{$f().innerHTML=`<div class="fb ${g?"g":"b"}">${g?"Верно. ":"Не совсем. "}${t}</div>`};
+const hearts=()=>"♥".repeat(cur.h)+"<i>"+"♥".repeat(cur.t-cur.h)+"</i>";
+function intro(){A.innerHTML=`<h1><span class="logo"></span>English Quest</h1><h2>Английский, который нужен, чтобы пройти сюжет</h2><p>Вы в Лондоне, багаж потерян. Чтение, аудирование, говорение и письмо встроены в историю, а ошибки стоят «доверия» персонажей.</p><button class="pri" style="width:100%" onclick="menu()">Начать игру</button>`}
+function menu(){cur=null;
+ let h=`<h1><span class="logo"></span>English Quest</h1><p class="stat">Монеты: ${S.coins} · Дней подряд: ${S.streak} · Слов: ${nv(S.vocab).length} · v4</p><p class="stat">${nv(SK).map(k=>SK[k]+" "+(S.sk[SK[k]]||0)).join(" · ")}</p><h2>Уровень</h2><div class="lv">${["A2","B1","B2"].map(l=>`<button class="${S.lvl===l?"pri":""}" onclick="lvl('${l}')">${l}</button>`).join("")}</div><p class="tr">Уровень задаёт число «сердец» и наличие подсказок на русском.</p>`;
+ let last="";E.forEach((e,i)=>{if(e.ch!==last){h+=`<h2>${e.ch}</h2>`;last=e.ch}h+=`<button class="ep ${S.done[i]?"done":""}" onclick="start(${i})">${e.t}<small>${S.done[i]?"Пройден":e.steps.length+" задания"}</small></button>`});
+ h+=`<h2>Повторение</h2><button onclick="review()" style="width:100%">Повторить слова (к повторению: ${dueWords().length})</button><button onclick="diary()" style="margin-top:8px;width:100%">Дневник слов</button><h2>Прогресс</h2><div class="lv"><button onclick="exportSave()">Сохранить в файл</button><button onclick="document.getElementById('imp').click()">Загрузить</button></div><input id="imp" type="file" accept="application/json" hidden onchange="imp(this.files[0])"><button class="ghost" onclick="intro()">О проекте</button>`;
+ A.innerHTML=h}
+function lvl(l){S.lvl=l;S.tr=l!=="B2";save();menu()}
+function imp(f){if(f)importSave(f,g=>{alert(g?"Прогресс загружен":"Не удалось прочитать файл");menu()})}
+function start(i){const t=HP[S.lvl];cur={e:E[i],id:i,i:0,h:t,t,m:0,lock:0};step()}
+function step(){const p=cur.e.steps[cur.i],n=cur.e.steps.length;cur.m=0;cur.lock=0;
+ let h=`<div class="row"><button class="ghost" onclick="menu()">‹ Карта</button><span class="hearts" id="hp">${hearts()}</span><span class="tr">${cur.i+1} из ${n}</span></div><h3>${cur.e.ch}: ${cur.e.t}</h3><div class="card"><div class="who">${p.e} ${p.w}</div>`;
+ if(p.k==="a")h+=`<button class="pri" onclick="speak()">▶ Прослушать</button><p class="tr" id="sub" hidden>${p.s}</p>${S.tr?`<button class="ghost" onclick="document.getElementById('sub').hidden=false">Показать субтитры</button>`:""}<p class="say">${p.q}</p>`;
+ else if(p.k==="c")h+=`<p class="say">${p.s}</p>${S.tr?`<p class="tr">${p.r}</p>`:""}<button class="ghost" onclick="speak()">🔊 Озвучить</button>`;
+ else if(p.k==="s")h+=`<p class="tr">Скажите вслух:</p><p class="say">${p.q}</p><button class="ghost" onclick="speak(1)">🔊 Образец</button>`;
+ else if(p.k==="w")h+=`<p class="tr">${p.r}</p><p class="say">${p.q}</p>`;
+ else h+=`<p class="say">${p.q}</p>`;
+ h+=`</div>`;
+ if(p.k==="s")h+=`<button class="pri" style="width:100%" onclick="mic()">🎤 Говорить</button>`;
+ else if(p.k==="w")h+=`<textarea id="tx" rows="3" aria-label="Ваш ответ"></textarea><button class="pri" style="width:100%;margin-top:8px" onclick="chk()">Проверить</button>`;
+ else h+=`<div class="opts">`+p.o.map((t,j)=>`<button onclick="pick(${j},this)">${t}</button>`).join("")+`</div>`;
+ A.innerHTML=h+`<div id="f"></div>`;if(p.k==="c"||p.k==="a")say(p.s)}
+const speak=q=>{const p=cur.e.steps[cur.i];say(q?p.q:p.s)};
+function nxt(){const last=cur.i===cur.e.steps.length-1,b=document.createElement("button");b.className="pri";b.style.cssText="width:100%;margin-top:8px";b.textContent=last?"Завершить эпизод":"Дальше";b.onclick=()=>{if(last)fin();else{cur.i++;step()}};$f().appendChild(b)}
+function ok(p,pre=""){cur.lock=1;S.coins+=cur.m?3:10;S.sk[SK[p.k]]=(S.sk[SK[p.k]]||0)+1;p.v.forEach(w=>addWord(w[0],w[1]));save();fb(pre+p.y,1);nxt()}
+function bad(p,pre=""){cur.m=1;cur.h--;document.getElementById("hp").innerHTML=hearts();
+ if(cur.h<=0){cur.lock=1;$f().innerHTML=`<div class="fb b">Доверие потеряно. ${p.y} Эпизод начнётся заново.</div><button class="pri" style="width:100%" onclick="start(${cur.id})">Попробовать снова</button>`}else fb(pre+p.y,0)}
+function pick(j,b){if(cur.lock)return;const p=cur.e.steps[cur.i];if(j===p.a){b.classList.add("ok");ok(p)}else{b.classList.add("no");b.disabled=true;bad(p)}}
+function noMic(){$f().innerHTML=`<div class="fb">Распознавание речи недоступно. Откройте игру в Chrome или подтвердите вручную.</div><button class="pri" style="width:100%" onclick="ok(cur.e.steps[cur.i])">Я произнёс(ла) фразу</button>`}
+function mic(){const p=cur.e.steps[cur.i];if(cur.lock)return;$f().innerHTML=`<div class="fb">Слушаю… произнесите фразу.</div>`;
+ const n=s=>s.toLowerCase().replace(/’/g,"'").replace(/[^a-z' ]/g,"").split(/\s+/).filter(Boolean);
+ listen(h=>{const T=n(p.q),H=n(h),pre=`Услышано: «${h}». `;T.filter(w=>H.includes(w)).length/T.length>=.7?ok(p,pre):bad(p,pre)},noMic)}
+function chk(){const p=cur.e.steps[cur.i],t=document.getElementById("tx").value.toLowerCase();if(!cur.lock){t.length>=15&&p.kw.every(k=>t.includes(k))?ok(p):bad(p)}}
+function fin(){const id=cur.id,e=cur.e;if(!S.done[id]){S.coins+=20;S.done[id]=1}save();
+ A.innerHTML=`<h1>Эпизод пройден</h1><p class="tr">«${e.t}». Бонус +20 монет. Монет: ${S.coins}.</p><h2>Новые слова</h2>${e.steps.flatMap(s=>s.v).map(x=>`<div class="w"><span>${x[0]}</span><span class="tr">${x[1]}</span></div>`).join("")}<div class="opts">${E[id+1]?`<button class="pri" onclick="start(${id+1})">Следующий эпизод</button>`:""}<button onclick="menu()">К карте</button></div>`}
+function diary(){const k=nv(S.vocab);A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Дневник слов</h1>${k.length?k.map(x=>`<div class="w"><span>${x}</span><span class="tr">${S.vocab[x].ru} · коробка ${S.vocab[x].box}</span><button class="ghost" aria-label="Озвучить ${x}" onclick="say('${x}')">🔊</button></div>`).join(""):`<p class="tr">Слова появятся после первых правильных ответов.</p>`}`}
+function review(){const ws=nv(S.vocab);
+ if(ws.length<4){A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Повторение</h1><p class="tr">Нужно минимум 4 слова. Пройдите ещё один эпизод.</p>`;return}
+ const d=dueWords(),pool=d.length?d:ws,w=pool[Math.random()*pool.length|0],o=sh([w,...sh(ws.filter(x=>x!==w)).slice(0,3)]);
+ A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Повторение</h1><p class="tr">К повторению: ${d.length}</p><div class="card"><p class="say">${S.vocab[w].ru}</p></div><div class="opts">${o.map(x=>`<button onclick="rv('${x}','${w}',this)">${x}</button>`).join("")}</div><div id="f"></div>`}
+function rv(x,w,b){document.querySelectorAll(".opts button").forEach(k=>k.disabled=true);const g=x===w;grade(w,g);if(g){S.coins+=2;save()}b.classList.add(g?"ok":"no");
+ $f().innerHTML=`<div class="fb ${g?"g":"b"}">${g?"Верно.":"Правильный ответ: "+w+"."}</div><button class="pri" style="width:100%" onclick="review()">Дальше</button>`}
+const D=[{"n":"Аэропорт","e":[{"t":"Паспортный контроль","steps":[{"k":"c","w":"Офицер","e":"👮","s":"Good morning. What’s the purpose of your visit?","r":"Доброе утро. Какова цель вашего визита?","o":["I’m here for an internship.","I am visiting yesterday.","My purpose is blue."],"a":0,"y":"Цель визита называют так: «I’m here for…». Остальные ответы не подходят по смыслу.","v":[["purpose","цель"],["internship","стажировка"]]},{"k":"c","w":"Офицер","e":"👮","s":"How long are you staying?","r":"Как долго вы пробудете?","o":["Since three months.","For three months.","In three months ago."],"a":1,"y":"Срок называют с предлогом for: «for three months». Since — это начало периода.","v":[["stay","оставаться"]]},{"k":"g","w":"Вы","e":"🙂","q":"Here ___ my passport.","o":["is","are","be"],"a":0,"y":"Passport — единственное число, поэтому «Here is my passport».","v":[["passport","паспорт"]]}]},{"t":"Потерянный багаж","steps":[{"k":"a","w":"Объявление","e":"📢","s":"Passengers from flight B A two four seven, please collect your luggage at belt number five.","q":"Какой номер ленты назван?","o":["Five","Fifteen","Seven"],"a":0,"y":"В объявлении сказано «belt number five», то есть лента 5.","v":[["luggage","багаж"],["belt","лента"]]},{"k":"c","w":"Сотрудница","e":"💁","s":"Can you describe your suitcase?","r":"Можете описать свой чемодан?","o":["I describe it big.","It is large black red suitcase tag.","It’s a large black suitcase with a red tag."],"a":2,"y":"Описание строится так: «It’s a … suitcase with …». В остальных вариантах нарушен порядок слов.","v":[["suitcase","чемодан"],["tag","бирка"]]},{"k":"g","w":"Вы","e":"🙂","q":"My suitcase ___ missing.","o":["am","is","are"],"a":1,"y":"Suitcase — единственное число: «My suitcase is missing».","v":[["missing","пропавший"]]}]}]},{"n":"Отель","e":[{"t":"Заселение","steps":[{"k":"c","w":"Администратор","e":"🛎️","s":"Welcome to Park Hotel. Do you have a reservation?","r":"Добро пожаловать в Park Hotel. У вас есть бронь?","o":["Yes, under the name Karimov.","Yes, I reserve you.","No, my reservation is tomorrow yesterday."],"a":0,"y":"Бронь называют так: «under the name…».","v":[["reservation","бронь"]]},{"k":"c","w":"Администратор","e":"🛎️","s":"Would you like breakfast included?","r":"Хотите, чтобы завтрак был включён?","o":["Yes, please. What time is it served?","Yes, I like breakfast very eat.","I want that you give breakfast."],"a":0,"y":"Вежливо отвечаем «Yes, please» и задаём уточняющий вопрос.","v":[["breakfast","завтрак"],["included","включённый"]]},{"k":"g","w":"Вы","e":"🙂","q":"I’d like ___ room with a view.","o":["an","a","the"],"a":1,"y":"Room начинается с согласного звука, значит артикль «a».","v":[["view","вид"]]}]},{"t":"Проблема в номере","steps":[{"k":"c","w":"Вы","e":"🙂","s":"Hello, the shower in my room doesn’t work.","r":"Здравствуйте, душ в моём номере не работает.","o":["Please fix I shower.","Could someone check it, please?","Shower is no good me."],"a":1,"y":"Просьбу формулируем вежливо: «Could someone check it, please?».","v":[["shower","душ"],["fix","чинить"]]},{"k":"a","w":"Администратор","e":"🛎️","s":"I’m so sorry about that. I’ll send someone up right away.","q":"Что сделает отель?","o":["Вернёт деньги","Пришлёт сотрудника","Поменяет отель"],"a":1,"y":"«I’ll send someone up» значит «пришлю кого-нибудь».","v":[["right away","немедленно"]]},{"k":"g","w":"Вы","e":"🙂","q":"Could you ___ me another towel?","o":["take","make","bring"],"a":2,"y":"Просим принести к нам: «bring me».","v":[["towel","полотенце"]]}]}]},{"n":"Город","e":[{"t":"Метро","steps":[{"k":"c","w":"Вы","e":"🙂","s":"Excuse me, how do I get to Oxford Circus?","r":"Простите, как добраться до Oxford Circus?","o":["Excuse me, where Oxford Circus go?","Is Oxford Circus far? I walk?","Excuse me, how do I get to Oxford Circus?"],"a":2,"y":"Это правильный вежливый вопрос о маршруте.","v":[["get to","добраться до"]]},{"k":"a","w":"Прохожий","e":"🧑","s":"Take the Central line, three stops.","q":"Сколько остановок ехать?","o":["Two","Three","Thirteen"],"a":1,"y":"Прозвучало «three stops».","v":[["line","линия"],["stop","остановка"]]},{"k":"g","w":"Вы","e":"🙂","q":"I’d like a ticket ___ Oxford Circus.","o":["at","on","to"],"a":2,"y":"Билет куда-то: «a ticket to…».","v":[["ticket","билет"]]}]},{"t":"Рынок","steps":[{"k":"c","w":"Продавец","e":"🧑‍🍳","s":"What can I get you?","r":"Что вам предложить?","o":["Can I have two apples, please?","I want apples two.","Give apple, two piece."],"a":0,"y":"«Can I have…, please?» — стандартный вежливый заказ.","v":[["apple","яблоко"]]},{"k":"g","w":"Вы","e":"🙂","q":"How ___ is this?","o":["many","long","much"],"a":2,"y":"Спрашиваем цену: «How much is this?».","v":[["how much","сколько стоит"]]},{"k":"a","w":"Продавец","e":"🧑‍🍳","s":"That’s four pounds fifty.","q":"Сколько стоит покупка?","o":["£4.15","£4.50","£14.50"],"a":1,"y":"«Four pounds fifty» — это 4,50 фунта.","v":[["pound","фунт"]]}]}]},{"n":"Офис","e":[{"t":"Первый рабочий день","steps":[{"k":"c","w":"Эмма","e":"👩‍💼","s":"Hi! You must be the new intern. I’m Emma.","r":"Привет! Вы, должно быть, новый стажёр. Я Эмма.","o":["Yes, nice to meet you, Emma.","Yes, I am meet you.","No, intern is me not."],"a":0,"y":"Знакомимся фразой «nice to meet you».","v":[["intern","стажёр"],["nice to meet you","приятно познакомиться"]]},{"k":"s","w":"Эмма","e":"👩‍💼","q":"I’d like a coffee, please.","y":"Так мы вежливо просим о чём-то: «I’d like…, please».","v":[["I’d like","я бы хотел(а)"]]},{"k":"w","w":"Эмма","e":"👩‍💼","r":"Напишите коллеге приветствие: назовите своё имя и скажите, что рады быть здесь.","q":"Hi! My name is … I’m glad to be here.","kw":["name","glad"],"y":"Подойдёт, например: «Hi! My name is Aziz. I’m glad to be here.» Нужны слова name и glad.","v":[["glad","рад"],["colleague","коллега"]]}]}]}];E=D.flatMap(c=>c.e.map(e=>({...e,ch:c.n})));intro();
+
+</script></body></html>
