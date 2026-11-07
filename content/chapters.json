@@ -1,0 +1,494 @@
+[
+ {
+  "n": "Аэропорт",
+  "e": [
+   {
+    "t": "Паспортный контроль",
+    "steps": [
+     {
+      "k": "c",
+      "w": "Офицер",
+      "e": "👮",
+      "s": "Good morning. What’s the purpose of your visit?",
+      "r": "Доброе утро. Какова цель вашего визита?",
+      "o": [
+       "I’m here for an internship.",
+       "I am visiting yesterday.",
+       "My purpose is blue."
+      ],
+      "a": 0,
+      "y": "Цель визита называют так: «I’m here for…». Остальные ответы не подходят по смыслу.",
+      "v": [
+       [
+        "purpose",
+        "цель"
+       ],
+       [
+        "internship",
+        "стажировка"
+       ]
+      ]
+     },
+     {
+      "k": "c",
+      "w": "Офицер",
+      "e": "👮",
+      "s": "How long are you staying?",
+      "r": "Как долго вы пробудете?",
+      "o": [
+       "Since three months.",
+       "For three months.",
+       "In three months ago."
+      ],
+      "a": 1,
+      "y": "Срок называют с предлогом for: «for three months». Since — это начало периода.",
+      "v": [
+       [
+        "stay",
+        "оставаться"
+       ]
+      ]
+     },
+     {
+      "k": "g",
+      "w": "Вы",
+      "e": "🙂",
+      "q": "Here ___ my passport.",
+      "o": [
+       "is",
+       "are",
+       "be"
+      ],
+      "a": 0,
+      "y": "Passport — единственное число, поэтому «Here is my passport».",
+      "v": [
+       [
+        "passport",
+        "паспорт"
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "t": "Потерянный багаж",
+    "steps": [
+     {
+      "k": "a",
+      "w": "Объявление",
+      "e": "📢",
+      "s": "Passengers from flight B A two four seven, please collect your luggage at belt number five.",
+      "q": "Какой номер ленты назван?",
+      "o": [
+       "Five",
+       "Fifteen",
+       "Seven"
+      ],
+      "a": 0,
+      "y": "В объявлении сказано «belt number five», то есть лента 5.",
+      "v": [
+       [
+        "luggage",
+        "багаж"
+       ],
+       [
+        "belt",
+        "лента"
+       ]
+      ]
+     },
+     {
+      "k": "c",
+      "w": "Сотрудница",
+      "e": "💁",
+      "s": "Can you describe your suitcase?",
+      "r": "Можете описать свой чемодан?",
+      "o": [
+       "I describe it big.",
+       "It is large black red suitcase tag.",
+       "It’s a large black suitcase with a red tag."
+      ],
+      "a": 2,
+      "y": "Описание строится так: «It’s a … suitcase with …». В остальных вариантах нарушен порядок слов.",
+      "v": [
+       [
+        "suitcase",
+        "чемодан"
+       ],
+       [
+        "tag",
+        "бирка"
+       ]
+      ]
+     },
+     {
+      "k": "g",
+      "w": "Вы",
+      "e": "🙂",
+      "q": "My suitcase ___ missing.",
+      "o": [
+       "am",
+       "is",
+       "are"
+      ],
+      "a": 1,
+      "y": "Suitcase — единственное число: «My suitcase is missing».",
+      "v": [
+       [
+        "missing",
+        "пропавший"
+       ]
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "n": "Отель",
+  "e": [
+   {
+    "t": "Заселение",
+    "steps": [
+     {
+      "k": "c",
+      "w": "Администратор",
+      "e": "🛎️",
+      "s": "Welcome to Park Hotel. Do you have a reservation?",
+      "r": "Добро пожаловать в Park Hotel. У вас есть бронь?",
+      "o": [
+       "Yes, under the name Karimov.",
+       "Yes, I reserve you.",
+       "No, my reservation is tomorrow yesterday."
+      ],
+      "a": 0,
+      "y": "Бронь называют так: «under the name…».",
+      "v": [
+       [
+        "reservation",
+        "бронь"
+       ]
+      ]
+     },
+     {
+      "k": "c",
+      "w": "Администратор",
+      "e": "🛎️",
+      "s": "Would you like breakfast included?",
+      "r": "Хотите, чтобы завтрак был включён?",
+      "o": [
+       "Yes, please. What time is it served?",
+       "Yes, I like breakfast very eat.",
+       "I want that you give breakfast."
+      ],
+      "a": 0,
+      "y": "Вежливо отвечаем «Yes, please» и задаём уточняющий вопрос.",
+      "v": [
+       [
+        "breakfast",
+        "завтрак"
+       ],
+       [
+        "included",
+        "включённый"
+       ]
+      ]
+     },
+     {
+      "k": "g",
+      "w": "Вы",
+      "e": "🙂",
+      "q": "I’d like ___ room with a view.",
+      "o": [
+       "an",
+       "a",
+       "the"
+      ],
+      "a": 1,
+      "y": "Room начинается с согласного звука, значит артикль «a».",
+      "v": [
+       [
+        "view",
+        "вид"
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "t": "Проблема в номере",
+    "steps": [
+     {
+      "k": "c",
+      "w": "Вы",
+      "e": "🙂",
+      "s": "Hello, the shower in my room doesn’t work.",
+      "r": "Здравствуйте, душ в моём номере не работает.",
+      "o": [
+       "Please fix I shower.",
+       "Could someone check it, please?",
+       "Shower is no good me."
+      ],
+      "a": 1,
+      "y": "Просьбу формулируем вежливо: «Could someone check it, please?».",
+      "v": [
+       [
+        "shower",
+        "душ"
+       ],
+       [
+        "fix",
+        "чинить"
+       ]
+      ]
+     },
+     {
+      "k": "a",
+      "w": "Администратор",
+      "e": "🛎️",
+      "s": "I’m so sorry about that. I’ll send someone up right away.",
+      "q": "Что сделает отель?",
+      "o": [
+       "Вернёт деньги",
+       "Пришлёт сотрудника",
+       "Поменяет отель"
+      ],
+      "a": 1,
+      "y": "«I’ll send someone up» значит «пришлю кого-нибудь».",
+      "v": [
+       [
+        "right away",
+        "немедленно"
+       ]
+      ]
+     },
+     {
+      "k": "g",
+      "w": "Вы",
+      "e": "🙂",
+      "q": "Could you ___ me another towel?",
+      "o": [
+       "take",
+       "make",
+       "bring"
+      ],
+      "a": 2,
+      "y": "Просим принести к нам: «bring me».",
+      "v": [
+       [
+        "towel",
+        "полотенце"
+       ]
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "n": "Город",
+  "e": [
+   {
+    "t": "Метро",
+    "steps": [
+     {
+      "k": "c",
+      "w": "Вы",
+      "e": "🙂",
+      "s": "Excuse me, how do I get to Oxford Circus?",
+      "r": "Простите, как добраться до Oxford Circus?",
+      "o": [
+       "Excuse me, where Oxford Circus go?",
+       "Is Oxford Circus far? I walk?",
+       "Excuse me, how do I get to Oxford Circus?"
+      ],
+      "a": 2,
+      "y": "Это правильный вежливый вопрос о маршруте.",
+      "v": [
+       [
+        "get to",
+        "добраться до"
+       ]
+      ]
+     },
+     {
+      "k": "a",
+      "w": "Прохожий",
+      "e": "🧑",
+      "s": "Take the Central line, three stops.",
+      "q": "Сколько остановок ехать?",
+      "o": [
+       "Two",
+       "Three",
+       "Thirteen"
+      ],
+      "a": 1,
+      "y": "Прозвучало «three stops».",
+      "v": [
+       [
+        "line",
+        "линия"
+       ],
+       [
+        "stop",
+        "остановка"
+       ]
+      ]
+     },
+     {
+      "k": "g",
+      "w": "Вы",
+      "e": "🙂",
+      "q": "I’d like a ticket ___ Oxford Circus.",
+      "o": [
+       "at",
+       "on",
+       "to"
+      ],
+      "a": 2,
+      "y": "Билет куда-то: «a ticket to…».",
+      "v": [
+       [
+        "ticket",
+        "билет"
+       ]
+      ]
+     }
+    ]
+   },
+   {
+    "t": "Рынок",
+    "steps": [
+     {
+      "k": "c",
+      "w": "Продавец",
+      "e": "🧑‍🍳",
+      "s": "What can I get you?",
+      "r": "Что вам предложить?",
+      "o": [
+       "Can I have two apples, please?",
+       "I want apples two.",
+       "Give apple, two piece."
+      ],
+      "a": 0,
+      "y": "«Can I have…, please?» — стандартный вежливый заказ.",
+      "v": [
+       [
+        "apple",
+        "яблоко"
+       ]
+      ]
+     },
+     {
+      "k": "g",
+      "w": "Вы",
+      "e": "🙂",
+      "q": "How ___ is this?",
+      "o": [
+       "many",
+       "long",
+       "much"
+      ],
+      "a": 2,
+      "y": "Спрашиваем цену: «How much is this?».",
+      "v": [
+       [
+        "how much",
+        "сколько стоит"
+       ]
+      ]
+     },
+     {
+      "k": "a",
+      "w": "Продавец",
+      "e": "🧑‍🍳",
+      "s": "That’s four pounds fifty.",
+      "q": "Сколько стоит покупка?",
+      "o": [
+       "£4.15",
+       "£4.50",
+       "£14.50"
+      ],
+      "a": 1,
+      "y": "«Four pounds fifty» — это 4,50 фунта.",
+      "v": [
+       [
+        "pound",
+        "фунт"
+       ]
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "n": "Офис",
+  "e": [
+   {
+    "t": "Первый рабочий день",
+    "steps": [
+     {
+      "k": "c",
+      "w": "Эмма",
+      "e": "👩‍💼",
+      "s": "Hi! You must be the new intern. I’m Emma.",
+      "r": "Привет! Вы, должно быть, новый стажёр. Я Эмма.",
+      "o": [
+       "Yes, nice to meet you, Emma.",
+       "Yes, I am meet you.",
+       "No, intern is me not."
+      ],
+      "a": 0,
+      "y": "Знакомимся фразой «nice to meet you».",
+      "v": [
+       [
+        "intern",
+        "стажёр"
+       ],
+       [
+        "nice to meet you",
+        "приятно познакомиться"
+       ]
+      ]
+     },
+     {
+      "k": "s",
+      "w": "Эмма",
+      "e": "👩‍💼",
+      "q": "I’d like a coffee, please.",
+      "y": "Так мы вежливо просим о чём-то: «I’d like…, please».",
+      "v": [
+       [
+        "I’d like",
+        "я бы хотел(а)"
+       ]
+      ]
+     },
+     {
+      "k": "w",
+      "w": "Эмма",
+      "e": "👩‍💼",
+      "r": "Напишите коллеге приветствие: назовите своё имя и скажите, что рады быть здесь.",
+      "q": "Hi! My name is … I’m glad to be here.",
+      "kw": [
+       "name",
+       "glad"
+      ],
+      "y": "Подойдёт, например: «Hi! My name is Aziz. I’m glad to be here.» Нужны слова name и glad.",
+      "v": [
+       [
+        "glad",
+        "рад"
+       ],
+       [
+        "colleague",
+        "коллега"
+       ]
+      ]
+     }
+    ]
+   }
+  ]
+ }
+]
