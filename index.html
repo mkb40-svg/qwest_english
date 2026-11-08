@@ -97,6 +97,7 @@ button:not(:disabled):active{transform:scale(.98)}
 .chips,.line{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.line{min-height:56px;border:2px dashed var(--line);border-radius:12px;padding:8px;align-items:center}
 .chip{min-height:44px;padding:8px 12px;animation:pop .3s both}.chip.on{background:color-mix(in srgb,var(--blue) 20%,var(--card));border-color:var(--blue)}.chip.done{opacity:.45}
 .mt{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mt div{display:grid;gap:8px;align-content:start}
+.chip.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--card))}.chip.no{border-color:var(--no)}
 #err{position:fixed;left:0;right:0;bottom:0;background:#C0392B;color:#fff;padding:10px 14px;font:14px/1.4 monospace;z-index:9}
 </style></head>
 <body><div id="app"></div>
@@ -118,8 +119,8 @@ function listen(ok,fail){const R=window.SpeechRecognition||window.webkitSpeechRe
 
 
 const DAYS=[0,1,2,4,8,16]; // интервалы по коробкам Лейтнера, дни
-const addWord=(en,ru)=>{if(!S.vocab[en])S.vocab[en]={ru,box:1,due:Date.now()}};
-const dueWords=()=>Object.keys(S.vocab).filter(w=>S.vocab[w].due<=Date.now());
+const addWord=(en,ru,l)=>{if(!S.vocab[en])S.vocab[en]={ru,box:1,due:Date.now(),l:l||S.lvl}};
+const dueWords=()=>Object.keys(S.vocab).filter(w=>S.vocab[w].due<=Date.now()&&(S.vocab[w].l||"A2")===S.lvl);
 function grade(w,ok){const v=S.vocab[w];v.box=ok?Math.min(v.box+1,5):1;v.due=Date.now()+DAYS[v.box]*864e5;save()}
 
 
@@ -175,20 +176,33 @@ function initSnd(){const b=document.createElement("button");b.className="snd";b.
 function toast(t){const e=document.createElement("div");e.className="coin";e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),1100)}
 function hs(el){const e=el.dataset.e,r=el.dataset.r,p=cur&&cur.e.steps[cur.i];say(e);
  if(p&&p.k==="f"&&!cur.lock){e===p.q?ok(p):bad(p);return}
- if(!S.vocab[e]){addWord(e,r);S.coins+=1;save();toast("+1 🪙")}toast(e+" — "+r)}
+ if(!S.vocab[e]){addWord(e,r,"A2");S.coins+=1;save();toast("+1 🪙")}toast(e+" — "+r)}
 function talk(ms){const q=()=>document.querySelectorAll(".ch .av");q().forEach(a=>a.classList.add("talk"));setTimeout(()=>q().forEach(a=>a.classList.remove("talk")),ms)}
 function poke(){const p=cur&&cur.e.steps[cur.i],t=p&&(typeof p.s==="string"?p.s:typeof p.q==="string"?p.q:"");if(t)say(t)}
 function cheer(){const a=document.querySelector(".me");if(!a)return;sfx("tap");a.className="me";void a.offsetWidth;a.className="me happy"}
 document.addEventListener("pointermove",e=>{const r=document.documentElement;r.style.setProperty("--px",((e.clientX/innerWidth-.5)*2).toFixed(2));r.style.setProperty("--py",((e.clientY/innerHeight-.5)*2).toFixed(2))});
-function initO(){const p=cur.e.steps[cur.i];cur.ow=sh(p.q.map((w,i)=>({w,i})));cur.ob=[];rO()}
-function rO(){document.getElementById("ln").innerHTML=cur.ob.map((x,k)=>`<button class="chip on" onclick="uO(${k})">${x.w}</button>`).join("")||`<span class="tr">Нажимайте слова по порядку…</span>`;document.getElementById("cp").innerHTML=cur.ow.map((x,k)=>`<button class="chip" onclick="pO(${k})">${x.w}</button>`).join("")}
-function pO(k){if(cur.lock)return;cur.ob.push(cur.ow.splice(k,1)[0]);sfx("tap");rO();const p=cur.e.steps[cur.i];if(!cur.ow.length){if(cur.ob.every((x,i)=>x.w===p.q[i]))ok(p);else{bad(p);if(!cur.lock){cur.ow=sh(cur.ob);cur.ob=[];rO()}}}}
-function uO(k){if(cur.lock)return;cur.ow.push(cur.ob.splice(k,1)[0]);rO()}
+let TM;const dn=i=>S.done[i+"_"+S.lvl]||(S.lvl==="A2"&&S.done[i]);
+const VVp=s=>(s||"").split(";").filter(Boolean).map(x=>x.split("|")),POOL=["the","of","do","it","by"];
+function build(i){const L=S.lvl,W=VVp((VV[i]||{})[L]),npc=(E[i].steps.find(x=>x.w!=="Вы"&&x.w!=="Объявление")||{w:"Вы"}).w;
+ let st=E[i].steps.map((p,j)=>ov(p,((V[i]||{})[L]||[])[j]));
+ if(L!=="A2")st=st.map(p=>p.k==="m"?{...p,v:W.slice(0,L==="B1"?5:6)}:p.k==="t"&&DT[i]&&DT[i][L]?{...p,q:DT[i][L],v:[]}:{...p,v:p.k==="f"?p.v:[]});
+ st=st.map(p=>p.k==="o"&&L!=="A2"?{...p,x:POOL.filter(w=>!p.q.includes(w)).slice(0,L==="B1"?1:2)}:p);
+ const pw=(L==="A2"?st.flatMap(p=>p.v||[]):W).filter(w=>/^[a-z]{4,9}$/i.test(w[0]));
+ sh(pw).slice(0,2).forEach(w=>st.push({k:"o",w:npc,u:1,r:w[1],q:w[0].toLowerCase().split(""),x:L==="B2"?sh("etaonrs".split("")).filter(c=>!w[0].includes(c)).slice(0,2):undefined,h:"Проверьте порядок букв.",y:"Слово: "+w[0]+" — "+w[1],v:[w]}));
+ const k=((SM[i]||{})[L]||"").split("|");if(k.length>3){const t=k[0].split(" "),a=+k[1];st.push({k:"k",w:npc,q:t,a,h:"Подсказка: проверьте форму глагола, предлог или артикль.",y:"Ошибка в слове «"+t[a]+"». "+(k[2]==="-"?"Его нужно убрать. ":"Правильно: «"+k[2]+"». ")+k[3],v:[]})}
+ return st}
+function timer(sec){clearInterval(TM);const T=sec*1000,t0=Date.now();TM=setInterval(()=>{const b=document.getElementById("tb");if(!cur||!b||cur.lock){clearInterval(TM);return}const r=1-(Date.now()-t0)/T;b.style.width=Math.max(r,0)*100+"%";if(r<=0){clearInterval(TM);bad(cur.e.steps[cur.i],"Время вышло. ")}},100)}
+function pK(i,b){if(cur.lock)return;const p=cur.e.steps[cur.i];if(p.a===i){b.classList.add("ok");ok(p)}else{b.disabled=true;b.classList.add("no");bad(p)}}
+function initO(){const p=cur.e.steps[cur.i];cur.ow=sh([...p.q,...(p.x||[])].map((w,i)=>({w,i})));cur.ob=[];cur.lk=0;if(p.u&&S.lvl==="A2"){const k=cur.ow.findIndex(x=>x.w===p.q[0]);cur.ob.push(cur.ow.splice(k,1)[0]);cur.lk=1}rO()}
+function rO(){document.getElementById("ln").innerHTML=cur.ob.map((x,k)=>`<button class="chip on" ${k<cur.lk?"disabled":""} onclick="uO(${k})">${x.w}</button>`).join("")||`<span class="tr">Нажимайте по порядку…</span>`;document.getElementById("cp").innerHTML=cur.ow.map((x,k)=>`<button class="chip" onclick="pO(${k})">${x.w}</button>`).join("")}
+function cO(){const p=cur.e.steps[cur.i];if(cur.lock)return;if(cur.ob.length===p.q.length&&cur.ob.every((x,i)=>x.w===p.q[i]))ok(p);else{bad(p);if(!cur.lock)initO()}}
+function pO(k){if(cur.lock)return;cur.ob.push(cur.ow.splice(k,1)[0]);sfx("tap");rO();const p=cur.e.steps[cur.i];if(!p.x&&!cur.ow.length)cO()}
+function uO(k){if(cur.lock||k<cur.lk)return;cur.ow.push(cur.ob.splice(k,1)[0]);rO()}
 function initM(){const p=cur.e.steps[cur.i];cur.ml=null;cur.md={};cur.mr=sh(p.v.map((x,i)=>i));rM()}
 function rM(){const p=cur.e.steps[cur.i],d=i=>cur.md[i]?"disabled":"";document.getElementById("mt").innerHTML=`<div>${p.v.map((x,i)=>`<button class="chip ${cur.md[i]?"done":""} ${cur.ml===i?"on":""}" ${d(i)} onclick="pM(0,${i})">${x[0]}</button>`).join("")}</div><div>${cur.mr.map(i=>`<button class="chip ${cur.md[i]?"done":""}" ${d(i)} onclick="pM(1,${i})">${p.v[i][1]}</button>`).join("")}</div>`}
 function pM(side,i){if(cur.lock)return;const p=cur.e.steps[cur.i];if(side===0){cur.ml=i;say(p.v[i][0]);rM();return}
  if(cur.ml===null)return;if(cur.ml===i){cur.md[i]=1;cur.ml=null;sfx("coin");rM();if(Object.keys(cur.md).length===p.v.length)ok(p)}else{cur.ml=null;bad(p);if(!cur.lock)rM()}}
-function chkT(){const p=cur.e.steps[cur.i];if(cur.lock)return;const n=s=>s.toLowerCase().replace(/’/g,"'").replace(/[^a-z' ]/g,"").split(/\s+/).filter(Boolean),T=n(p.q),H=n(document.getElementById("tx").value);T.filter(w=>H.includes(w)).length/T.length>=.8?ok(p):bad(p)}
+function chkT(){const p=cur.e.steps[cur.i];if(cur.lock)return;const n=s=>s.toLowerCase().replace(/’/g,"'").replace(/[^a-z' ]/g,"").split(/\s+/).filter(Boolean),T=n(p.q),H=n(document.getElementById("tx").value);T.filter(w=>H.includes(w)).length/T.length>=({A2:.8,B1:.85,B2:.9})[S.lvl]?ok(p):bad(p)}
 let sel=0;
 function hero(){sel=(S.me||{i:0}).i;A.innerHTML=`<button class="ghost" onclick="${S.me?"menu()":"intro()"}">‹ Назад</button><h1>Выберите героя</h1><p class="tr">Это будете вы. Герой появится в каждом задании и отреагирует на ваши ответы.</p><div class="heroes">${PR.map((c,i)=>`<button class="${i===sel?"sel":""}" onclick="selHero(${i})" aria-label="Герой ${i+1}">${av(c)}</button>`).join("")}</div><input class="in" id="nm" maxlength="14" placeholder="Ваше имя" value="${S.me?S.me.name:""}"><button class="pri" style="width:100%;margin-top:10px" onclick="saveHero()">Начать приключение</button>`}
 function selHero(i){sel=i;document.querySelectorAll(".heroes button").forEach((b,j)=>b.className=j===i?"sel":"")}
@@ -220,48 +234,50 @@ function fx(t){sfx("coin");const e=document.createElement("div");e.className="co
 function confetti(){const C=["#D4261F","#1B3FA0","#FFD23F","#3E8E41","#fff"];for(let i=0;i<28;i++){const d=document.createElement("i");d.className="cf";d.style.cssText=`left:${Math.random()*100}vw;background:${C[i%5]};animation-duration:${1.6+Math.random()*1.4}s;animation-delay:${Math.random()*.3}s`;document.body.appendChild(d);setTimeout(()=>d.remove(),3500)}}
 function intro(){A.innerHTML=`<div class="stage" style="height:200px">${scene("Аэропорт")}<div class="tale">Лондон, терминал 5. Ваш багаж не приехал…</div><div class="me">${av("Вы")}</div><div class="ch" onclick="poke()">${av("Офицер")}</div></div><h1 style="margin-top:14px"><span class="logo"></span>English Quest</h1><h2>Английский нужен, чтобы пройти сюжет</h2><p>Вы прилетели в Лондон на стажировку, но чемодан с паспортом потерялся. За три дня нужно найти вещи и успеть в офис. Каждый разговор на английском двигает историю, а ошибки стоят «доверия» героев.</p><h2>Герои</h2><div class="cast">${["Офицер","Сотрудница","Администратор","Прохожий","Продавец","Эмма"].map((n,i)=>`<div style="animation-delay:${i*.1}s">${av(n,"h")}${(DISP[n]||n).split(",")[0]}</div>`).join("")}</div><button class="pri" style="width:100%" onclick="S.me?menu():hero()">Начать приключение</button>`}
 function menu(){cur=null;setMusic("menu");
- let h=`<h1><span class="logo"></span>English Quest</h1><p class="stat">${S.me?"Герой: "+S.me.name+" · ":""}Монеты: ${S.coins} · Дней подряд: ${S.streak} · Слов: ${nv(S.vocab).length} · v8</p><p class="stat">${nv(SK).map(k=>SK[k]+" "+(S.sk[SK[k]]||0)).join(" · ")}</p><h2>Уровень</h2><div class="lv">${["A2","B1","B2"].map(l=>`<button class="${S.lvl===l?"pri":""}" onclick="lvl('${l}')">${l}</button>`).join("")}</div><p class="tr">Уровень меняет сложность реплик и ответов, скорость речи, число «сердец» и подсказки.</p>`;
- let last="";E.forEach((e,i)=>{if(e.ch!==last){h+=`<div class="ban">${scene(e.ch)}<b>${e.ch}</b></div>`;last=e.ch}h+=`<button class="ep ${S.done[i]?"done":""}" onclick="start(${i})">${e.t}<small>${S.done[i]?"Пройден":e.steps.length+" задания"}</small></button>`});
+ let h=`<h1><span class="logo"></span>English Quest</h1><p class="stat">${S.me?"Герой: "+S.me.name+" · ":""}Монеты: ${S.coins} · Дней подряд: ${S.streak} · Слов (${S.lvl}): ${nv(S.vocab).filter(w=>(S.vocab[w].l||"A2")===S.lvl).length} · v9</p><p class="stat">${nv(SK).map(k=>SK[k]+" "+(S.sk[SK[k]]||0)).join(" · ")}</p><h2>Уровень</h2><div class="lv">${["A2","B1","B2"].map(l=>`<button class="${S.lvl===l?"pri":""}" onclick="lvl('${l}')">${l}</button>`).join("")}</div><p class="tr">Уровень меняет сложность реплик и ответов, скорость речи, число «сердец» и подсказки.</p>`;
+ let last="";E.forEach((e,i)=>{if(e.ch!==last){h+=`<div class="ban">${scene(e.ch)}<b>${e.ch}</b></div>`;last=e.ch}h+=`<button class="ep ${dn(i)?"done":""}" onclick="start(${i})">${e.t}<small>${dn(i)?"Пройден":build(i).length+" заданий"}</small></button>`});
  h+=`<h2>Повторение</h2><button onclick="review()" style="width:100%">Повторить слова (к повторению: ${dueWords().length})</button><button onclick="diary()" style="margin-top:8px;width:100%">Дневник слов</button><h2>Прогресс</h2><div class="lv"><button onclick="exportSave()">Сохранить в файл</button><button onclick="document.getElementById('imp').click()">Загрузить</button></div><input id="imp" type="file" accept="application/json" hidden onchange="imp(this.files[0])"><button class="ghost" onclick="hero()">Сменить героя</button><button class="ghost" onclick="intro()">О проекте</button>`;
  A.innerHTML=h}
 function lvl(l){S.lvl=l;S.tr=l!=="B2";save();menu()}
 function imp(f){if(f)importSave(f,g=>{alert(g?"Прогресс загружен":"Не удалось прочитать файл");menu()})}
-function start(i){const t=HP[S.lvl];cur={e:{...E[i],steps:E[i].steps.map((p,j)=>ov(p,((V[i]||{})[S.lvl]||[])[j]))},id:i,i:0,h:t,t,m:0,lock:0};setMusic(E[i].ch);step()}
-function step(){const p=cur.e.steps[cur.i],n=cur.e.steps.length;cur.m=0;cur.lock=0;
- let h=`<div class="row"><button class="ghost" onclick="menu()">‹ Карта</button><span class="hearts" id="hp">${hearts()}</span><span class="tr">${cur.i+1} из ${n}</span></div><div class="bar"><i style="width:${cur.i/n*100}%"></i></div><h3>${cur.e.ch}: ${cur.e.t}</h3><div class="stage">${scene(cur.e.ch)}<div class="tale">${TALE[cur.e.t]||""}</div><div class="me" onclick="cheer()">${av("Вы")}</div><div class="ch" onclick="poke()">${av(npcOf(p))}</div></div><div class="card bub"><div class="who">${nm(p.w)}</div>`;
+function start(i){const t=HP[S.lvl];cur={e:{...E[i],steps:build(i)},id:i,i:0,h:t,t,m:0,lock:0};setMusic(E[i].ch);step()}
+function step(){clearInterval(TM);const p=cur.e.steps[cur.i],n=cur.e.steps.length;cur.m=0;cur.lock=0;
+ let h=`<div class="row"><button class="ghost" onclick="menu()">‹ Карта</button><span class="hearts" id="hp">${hearts()}</span><span class="tr">${cur.i+1} из ${n}</span></div><div class="bar"><i style="width:${cur.i/n*100}%"></i></div>${S.lvl==="B2"&&"cag".includes(p.k)?`<div class="bar tm"><i id="tb" style="width:100%;background:var(--red)"></i></div>`:""}<h3>${cur.e.ch}: ${cur.e.t}</h3><div class="stage">${scene(cur.e.ch)}<div class="tale">${TALE[cur.e.t]||""}</div><div class="me" onclick="cheer()">${av("Вы")}</div><div class="ch" onclick="poke()">${av(npcOf(p))}</div></div><div class="card bub"><div class="who">${nm(p.w)}</div>`;
  if(p.k==="a")h+=`<button class="pri" onclick="speak()">▶ Прослушать</button><p class="tr" id="sub" hidden>${p.s}</p>${S.tr?`<button class="ghost" onclick="document.getElementById('sub').hidden=false">Показать субтитры</button>`:""}<p class="say">${p.q}</p>`;
  else if(p.k==="c")h+=`<p class="say">${p.s}</p>${S.tr?`<p class="tr">${p.r}</p>`:""}<button class="ghost" onclick="speak()">🔊 Озвучить</button>`;
  else if(p.k==="s")h+=`<p class="tr">Скажите вслух:</p><p class="say">${p.q}</p><button class="ghost" onclick="speak(1)">🔊 Образец</button>`;
  else if(p.k==="w")h+=`<p class="tr">${p.r}</p><p class="say">${p.q}</p>`;
- else if(p.k==="o")h+=`<p class="tr">${p.r}</p><div class="line" id="ln"></div>`;
+ else if(p.k==="o")h+=`<p class="tr">${p.u?"Составьте английское слово: <b>"+p.r+"</b>":p.r}</p><div class="line" id="ln"></div>`;
+ else if(p.k==="k")h+=`<p class="tr">Найдите ошибку: нажмите на неверное слово.</p>`;
  else if(p.k==="m")h+=`<p class="tr">${p.r}</p>`;
- else if(p.k==="f")h+=`<p class="say">Tap the <b>${p.q}</b></p><button class="ghost" onclick="say('${p.q}')">🔊 Послушать</button><p class="tr">Найдите предмет на сцене выше и нажмите на него.</p>`;
+ else if(p.k==="f")h+=S.lvl==="A2"?`<p class="say">Tap the <b>${p.q}</b></p><button class="ghost" onclick="say('${p.q}')">🔊 Послушать</button><p class="tr">Найдите предмет на сцене выше и нажмите на него.</p>`:S.lvl==="B1"?`<p class="tr">Прослушайте слово и найдите предмет на сцене.</p><button class="pri" onclick="say('${p.q}')">▶ Прослушать</button>`:`<p class="say">${DESC[p.q]}</p><p class="tr">Найдите предмет, который описывает фраза.</p>`;
  else if(p.k==="t")h+=`<p class="tr">Прослушайте и напишите фразу по-английски.</p><button class="pri" onclick="say('${p.q}')">▶ Прослушать</button>`;
  else h+=`<p class="say">${p.q}</p>`;
  h+=`</div>`;
  if(p.k==="s")h+=`<button class="pri" style="width:100%" onclick="mic()">🎤 Говорить</button>`;
  else if(p.k==="w")h+=`<textarea id="tx" rows="3" aria-label="Ваш ответ"></textarea><button class="pri" style="width:100%;margin-top:8px" onclick="chk()">Проверить</button>`;
- else if(p.k==="o")h+=`<div class="chips" id="cp"></div>`;
+ else if(p.k==="o")h+=`<div class="chips" id="cp"></div>`+(p.x?`<button class="pri" style="width:100%" onclick="cO()">Проверить</button>`:"");
+ else if(p.k==="k")h+=`<div class="chips" id="cp">${p.q.map((w,i)=>`<button class="chip" onclick="pK(${i},this)">${w}</button>`).join("")}</div>`;
  else if(p.k==="m")h+=`<div class="mt" id="mt"></div>`;
  else if(p.k==="f")h+="";
  else if(p.k==="t")h+=`<textarea id="tx" rows="2" aria-label="Ваш ответ"></textarea><button class="pri" style="width:100%;margin-top:8px" onclick="chkT()">Проверить</button>`;
  else h+=`<div class="opts">`+p.o.map((t,j)=>`<button onclick="pick(${j},this)">${t}</button>`).join("")+`</div>`;
- A.innerHTML=h+`<div id="f"></div>`;if(p.k==="o")initO();if(p.k==="m")initM();if(p.k==="t")say(p.q);if(p.k==="c"||p.k==="a")say(p.s)}
+ A.innerHTML=h+`<div id="f"></div>`;if(p.k==="o")initO();if(p.k==="f"&&S.lvl==="B1")say(p.q);if(S.lvl==="B2"&&"cag".includes(p.k))timer(p.k==="a"?25:20);if(p.k==="m")initM();if(p.k==="t")say(p.q);if(p.k==="c"||p.k==="a")say(p.s)}
 const speak=q=>{const p=cur.e.steps[cur.i];say(q?p.q:p.s)};
 function nxt(){const last=cur.i===cur.e.steps.length-1,b=document.createElement("button");b.className="pri";b.style.cssText="width:100%;margin-top:8px";b.textContent=last?"Завершить эпизод":"Дальше";b.onclick=()=>{if(last)fin();else{cur.i++;step()}};$f().appendChild(b)}
-function ok(p,pre=""){cur.lock=1;mood("h");sfx("ok");fx("+"+(cur.m?3:10));S.coins+=cur.m?3:10;{const sk=SK[p.k]||({o:"Грамматика",m:"Чтение",f:"Аудирование",t:"Письмо"})[p.k];S.sk[sk]=(S.sk[sk]||0)+1}p.v.forEach(w=>addWord(w[0],w[1]));save();fb(pre+p.y,1);nxt()}
+function ok(p,pre=""){clearInterval(TM);cur.lock=1;mood("h");sfx("ok");fx("+"+(cur.m?3:10));S.coins+=cur.m?3:10;{const sk=SK[p.k]||({o:"Грамматика",m:"Чтение",f:"Аудирование",t:"Письмо"})[p.k];S.sk[sk]=(S.sk[sk]||0)+1}p.v.forEach(w=>addWord(w[0],w[1]));save();fb(pre+p.y,1);nxt()}
 function bad(p,pre=""){cur.m=1;cur.h--;mood("s");sfx("bad");{const hp=document.getElementById("hp");hp.innerHTML=hearts();hp.classList.remove("hit");void hp.offsetWidth;hp.classList.add("hit")}
- if(cur.h<=0){cur.lock=1;$f().innerHTML=`<div class="fb b">Доверие потеряно. ${p.y} Эпизод начнётся заново.</div><button class="pri" style="width:100%" onclick="start(${cur.id})">Попробовать снова</button>`}else fb(pre+p.y,0)}
+ if(cur.h<=0){cur.lock=1;$f().innerHTML=`<div class="fb b">Доверие потеряно. ${p.y} Эпизод начнётся заново.</div><button class="pri" style="width:100%" onclick="start(${cur.id})">Попробовать снова</button>`}else fb(pre+(p.h||p.y),0)}
 function pick(j,b){if(cur.lock)return;const p=cur.e.steps[cur.i];if(j===p.a){b.classList.add("ok");ok(p)}else{b.classList.add("no");b.disabled=true;bad(p)}}
 function noMic(){$f().innerHTML=`<div class="fb">Распознавание речи недоступно. Откройте игру в Chrome или подтвердите вручную.</div><button class="pri" style="width:100%" onclick="ok(cur.e.steps[cur.i])">Я произнёс(ла) фразу</button>`}
 function mic(){const p=cur.e.steps[cur.i];if(cur.lock)return;$f().innerHTML=`<div class="fb">Слушаю… произнесите фразу.</div>`;
  const n=s=>s.toLowerCase().replace(/’/g,"'").replace(/[^a-z' ]/g,"").split(/\s+/).filter(Boolean);
  listen(h=>{const T=n(p.q),H=n(h),pre=`Услышано: «${h}». `;T.filter(w=>H.includes(w)).length/T.length>=.7?ok(p,pre):bad(p,pre)},noMic)}
 function chk(){const p=cur.e.steps[cur.i],t=document.getElementById("tx").value.toLowerCase();if(!cur.lock){t.length>=15&&p.kw.every(k=>t.includes(k))?ok(p):bad(p)}}
-function fin(){confetti();sfx("win");const id=cur.id,e=cur.e;if(!S.done[id]){S.coins+=20;S.done[id]=1}save();
- A.innerHTML=`<div class="stage" style="height:200px">${scene(e.ch)}<div class="me happy">${av("Вы","h")}</div><div class="ch">${av((e.steps.find(x=>x.w!=="Вы"&&x.w!=="Объявление")||{w:"Вы"}).w,"h")}</div></div><h1 style="margin-top:12px">Эпизод пройден</h1><p class="tr">«${e.t}». Бонус +20 монет. Монет: ${S.coins}.</p><h2>Новые слова</h2>${e.steps.flatMap(s=>s.v).map(x=>`<div class="w"><span>${x[0]}</span><span class="tr">${x[1]}</span></div>`).join("")}<div class="opts">${E[id+1]?`<button class="pri" onclick="start(${id+1})">Следующий эпизод</button>`:""}<button onclick="menu()">К карте</button></div>`}
-function diary(){const k=nv(S.vocab);A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Дневник слов</h1>${k.length?k.map(x=>`<div class="w"><span>${x}</span><span class="tr">${S.vocab[x].ru} · коробка ${S.vocab[x].box}</span><button class="ghost" aria-label="Озвучить ${x}" onclick="say('${x}')">🔊</button></div>`).join(""):`<p class="tr">Слова появятся после первых правильных ответов.</p>`}`}
-function review(){const ws=nv(S.vocab);
+function fin(){confetti();sfx("win");const id=cur.id,e=cur.e;const dk=id+"_"+S.lvl;if(!S.done[dk]){S.coins+=20;S.done[dk]=1}if(S.lvl!=="A2")VVp((VV[id]||{})[S.lvl]).forEach(w=>addWord(w[0],w[1]));save();
+ A.innerHTML=`<div class="stage" style="height:200px">${scene(e.ch)}<div class="me happy">${av("Вы","h")}</div><div class="ch">${av((e.steps.find(x=>x.w!=="Вы"&&x.w!=="Объявление")||{w:"Вы"}).w,"h")}</div></div><h1 style="margin-top:12px">Эпизод пройден</h1><p class="tr">«${e.t}». Бонус +20 монет. Монет: ${S.coins}.</p><h2>Новые слова</h2>${(S.lvl==="A2"?e.steps.flatMap(s=>s.v):VVp((VV[id]||{})[S.lvl])).filter((x,i,a)=>a.findIndex(y=>y[0]===x[0])===i).map(x=>`<div class="w"><span>${x[0]}</span><span class="tr">${x[1]}</span></div>`).join("")}<div class="opts">${E[id+1]?`<button class="pri" onclick="start(${id+1})">Следующий эпизод</button>`:""}<button onclick="menu()">К карте</button></div>`}
+function diary(l){l=l||S.lvl;const W=x=>nv(S.vocab).filter(w=>(S.vocab[w].l||"A2")===x),k=W(l);A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Дневник слов</h1><div class="lv">${["A2","B1","B2"].map(x=>`<button class="${x===l?"pri":""}" onclick="diary('${x}')">${x} · ${W(x).length}</button>`).join("")}</div>${k.length?k.map(x=>`<div class="w"><span>${x}</span><span class="tr">${S.vocab[x].ru} · коробка ${S.vocab[x].box}</span><button class="ghost" aria-label="Озвучить ${x}" onclick="say('${x}')">🔊</button></div>`).join(""):`<p class="tr">В уровне ${l} пока пусто. Проходите задания этого уровня.</p>`}`}
+function review(){const ws=nv(S.vocab).filter(w=>(S.vocab[w].l||"A2")===S.lvl);
  if(ws.length<4){A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Повторение</h1><p class="tr">Нужно минимум 4 слова. Пройдите ещё один эпизод.</p>`;return}
  const d=dueWords(),pool=d.length?d:ws,w=pool[Math.random()*pool.length|0],o=sh([w,...sh(ws.filter(x=>x!==w)).slice(0,3)]);
  A.innerHTML=`<button class="ghost" onclick="menu()">‹ Карта</button><h1>Повторение</h1><p class="tr">К повторению: ${d.length}</p><div class="card"><p class="say">${S.vocab[w].ru}</p></div><div class="opts">${o.map(x=>`<button onclick="rv('${x}','${w}',this)">${x}</button>`).join("")}</div><div id="f"></div>`}
@@ -274,6 +290,22 @@ const D=[{"n":"Аэропорт","e":[{"t":"Паспортный контрол�
 4:[{k:"f",w:"Прохожий",q:"map",y:"Map — карта, она поможет найти дорогу.",v:[["map","карта"]]},{k:"o",w:"Вы",r:"Составьте вопрос: «Как добраться до Oxford Circus?».",q:["How","do","I","get","to","Oxford","Circus"],y:"How do I get to Oxford Circus?",v:[["get to","добраться до"]]}],
 5:[{k:"m",w:"Продавец",r:"Соедините слова с переводом.",v:[["apple","яблоко"],["pound","фунт"],["price","цена"],["fresh","свежий"]],y:"Слова с рынка."},{k:"o",w:"Вы",r:"Составьте просьбу: «Можно мне два яблока, пожалуйста?».",q:["Can","I","have","two","apples","please"],y:"Can I have two apples please?",v:[["two apples","два яблока"]]}],
 6:[{k:"f",w:"Эмма",q:"laptop",y:"Laptop — ноутбук, ваше рабочее место.",v:[["laptop","ноутбук"]]},{k:"o",w:"Вы",r:"Составьте фразу: «Рад познакомиться, Эмма».",q:["Nice","to","meet","you","Emma"],y:"Nice to meet you, Emma.",v:[["nice to meet you","приятно познакомиться"]]},{k:"t",w:"Эмма",q:"I am glad to be here.",y:"Правильно: I am glad to be here.",v:[["glad","рад"]]}]};
+const VV={0:{B1:"customs|таможня;arrival|прибытие;visa|виза;declare|декларировать;queue|очередь",B2:"immigration|иммиграционный контроль;itinerary|маршрут поездки;accommodation|проживание;proof of funds|подтверждение средств;entitled to|иметь право на;duration|продолжительность"},
+1:{B1:"baggage claim|выдача багажа;luggage tag|багажная бирка;delayed|задержанный;compensation|компенсация;fragile|хрупкий",B2:"mishandled|неправильно обработанный;file a claim|подать претензию;reference number|номер обращения;liable|ответственный;courier|курьер;deliver|доставить"},
+2:{B1:"reception|стойка регистрации;single room|одноместный номер;deposit|залог;late check-out|поздний выезд;wake-up call|звонок-будильник",B2:"complimentary|бесплатный;upgrade|улучшение номера;fully booked|полностью забронирован;amenities|удобства;confirmation|подтверждение;itemised bill|подробный счёт"},
+3:{B1:"plumber|сантехник;leak|протечка;inconvenience|неудобство;compensate|компенсировать;faulty|неисправный",B2:"frustrating|раздражающий;look into|разобраться;on the house|за счёт заведения;apologise|извиниться;prompt|оперативный;unacceptable|неприемлемо"},
+4:{B1:"platform|платформа;change|пересадка;single ticket|билет в один конец;rush hour|час пик;zone|тарифная зона",B2:"suspended|приостановлен;signal failure|сбой сигнализации;commuter|пригородный пассажир;detour|объезд;contactless|бесконтактный;disruption|сбой в движении"},
+5:{B1:"bargain|выгодная покупка;receipt|чек;fresh produce|свежие продукты;change|сдача;bunch|пучок",B2:"haggle|торговаться;seasonal|сезонный;organic|органический;out of stock|нет в наличии;in bulk|оптом;weigh|взвешивать"},
+6:{B1:"mentor|наставник;deadline|крайний срок;colleague|коллега;schedule|расписание;team meeting|встреча команды",B2:"onboarding|введение в должность;deliverable|результат работы;stakeholder|заинтересованная сторона;take on|взять на себя;priorities|приоритеты;feedback|обратная связь"}};
+const SM={0:{B1:"He have a visa for six months|1|has|Подлежащее he требует has.",B2:"If you would have a return ticket you could stay|2|-|После If используем Past Simple: If you had…"},
+1:{B1:"My suitcase were lost at the airport|2|was|Suitcase в единственном числе: was.",B2:"I wish I would have kept my luggage with me|3|had|После I wish нужен Past Perfect: I wish I had kept."},
+2:{B1:"The hotel is in the center on the city|6|of|Устойчивое выражение: the center of the city.",B2:"I look forward to hear from you soon|4|hearing|После look forward to идёт форма на -ing."},
+3:{B1:"The shower don’t work since yesterday|2|doesn’t|С he/she/it: doesn’t.",B2:"I’d rather you would fix it immediately|3|-|После I’d rather you идёт Past Simple."},
+4:{B1:"I need to change at Bank for to reach Oxford Circus|6|-|Цель выражаем через to: to reach.",B2:"Had I known about delays I would take a taxi|7|have taken|Third conditional: would have taken."},
+5:{B1:"How much apples do you want|1|many|Apples исчисляемое: how many.",B2:"Neither of the apples are fresh|4|is|После Neither of идёт is."},
+6:{B1:"She is working here since March|1|has been|Present Perfect Continuous: has been working since March.",B2:"I look forward to work with your team|4|working|После look forward to идёт форма на -ing."}};
+const DT={1:{B1:"Could you check whether my suitcase has arrived?",B2:"I’d like to file a claim because my luggage has been mishandled."},3:{B1:"The shower has not been working since last night.",B2:"I would appreciate it if someone could look into the problem promptly."},6:{B1:"I am looking forward to working with the team.",B2:"I would be happy to take on more responsibility as soon as possible."}};
+const DESC={passport:"You show this document to the officer at border control.",key:"You use it to open the door of your hotel room.",map:"It helps you find your way around the city.",laptop:"You use it to work at your desk."};
 Object.keys(XS).forEach(i=>E[i].steps.push(...XS[i]));
 initSnd();intro();
 
